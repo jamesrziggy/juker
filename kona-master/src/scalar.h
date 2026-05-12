@@ -13,10 +13,17 @@
   I zn=at>0?bn:an;
 
 /* Macro case: N:N, 1:N, N:1 implicit looping for op */
+#ifdef _OPENMP
+#define SCALAR_OP_CASE(op, cres, ca, cb)                                                                   \
+   if (an==bn)     { _Pragma("omp parallel for schedule(static)") for(I i=0;i<zn;++i){cres[i]=op(ca[i],cb[i]);} } \
+   else if (an==1) { _Pragma("omp parallel for schedule(static)") for(I i=0;i<zn;++i){cres[i]=op(ca[0],cb[i]);} } \
+   else            { _Pragma("omp parallel for schedule(static)") for(I i=0;i<zn;++i){cres[i]=op(ca[i],cb[0]);} }
+#else
 #define SCALAR_OP_CASE(op, cres, ca, cb)                      \
    if (an==bn) { DO(zn,cres [i]= op (ca [i], cb [i])) }       \
    else if (an==1) { DO(zn,cres [i]= op (ca [0], cb [i])) }   \
    else /* bn==1 */ { DO(zn,cres [i]= op (ca [i], cb [0])) }
+#endif
 
 /* Scalar operator macro, with proper float/int/array treatment */
 #define SCALAR_OP(op,verb)                                                      \
