@@ -210,7 +210,7 @@ Z K _0d_write(K a,K b) {     //assumes a->t in {3,-3,4}
     if(3==ABS(t)) {if(write(f,kC(b),s)==-1)show(WE);}
       //This is duplicated but I don't see how to factor it right now (choose write/memcpy funcs?)
     else DO(n, k=kK(b)[i];
-      if(3==ABS(k->t)) r=write(f,kC(k),k->n);
+      if(3==ABS(k->t)){r=write(f,kC(k),k->n); if(r==-1)show(WE);}
       r=write(f,"\n",1); if(r==-1)show(WE);)}
   else {                                                              //write to mmap'd file
     if(m[0])f=open(m,O_RDWR|O_CREAT|O_TRUNC,0664);
@@ -880,8 +880,8 @@ K _2d(K a,K b) {
   V x=dlopen(CSK(a),RTLD_LAZY|RTLD_LOCAL),y;
 
   e=dlerror();
-  if (e) { O("error loading %s\nerr=%s\n", CSK(a), e); R 0; }
-  if (!x){ O("error loading %s \n", CSK(a)); R 0; }
+  if (e) { O("error loading %s\nerr=%s\n", CSK(a), e); R kerr("file"); }
+  if (!x){ O("error loading %s \n", CSK(a)); R kerr("file"); }
   y=dlsym(x,CSK(c));
   e=dlerror();
   P(e&&*e,kerr(e))
@@ -1001,11 +1001,13 @@ K _4d_(S srvr,S port,K y) {
   I n=strlen(kC(y)); C msg[n+5]; I i=0; for(i=0;i<n+1;i++){msg[i]=kC(y)[i];}
   msg[n]='\r'; msg[n+1]='\n'; msg[n+2]='\r'; msg[n+3]='\n'; msg[n+4]='\0';
   if(write(sockfd, &msg, strlen(msg))==-1){r=close(sockfd); if(r)R FE; R WE;}
-  C buf[20000]; I size=30000; S data = malloc(size); I n1=1; n=0;
+  C buf[20000]; I size=30000; S data = malloc(size);
+  if(!data){r=close(sockfd); R ME;}
+  I n1=1; n=0;
   do {
         n1=read(sockfd,&buf,20000);
         if(n1 == 0) break;
-        if(n1<0){O("errno: %d\n",errno); R 0;}
+        if(n1<0){O("errno: %d\n",errno); free(data); R SE;}
         if( (n+n1) > (size-1) ) { size += 20000; S tmp=realloc(data,size); if(!tmp){free(data);R ME;} data=tmp; }
         for(i=0; i<n1; ++i) data[n+i]=buf[i]; //was n1+1, read 1 byte past buffer
         n += n1;
@@ -1050,11 +1052,13 @@ K _4d_(S srvr,S port,K y) {
   I n=strlen(kC(y)); C msg[n+5]; for(i=0;i<n+1;i++){msg[i]=kC(y)[i];}
   msg[n]='\r'; msg[n+1]='\n'; msg[n+2]='\r'; msg[n+3]='\n'; msg[n+4]='\0';
   if(send(sockfd, msg, strlen(msg), 0)==-1){O("errno:%d\n",errno); r=closesocket(sockfd); if(r)R FE; freeaddrinfo(result); R WE;}
-  C buf[20000]; I size=30000; S data = malloc(size); I n1=1; n=0;
+  C buf[20000]; I size=30000; S data = malloc(size);
+  if(!data){r=closesocket(sockfd); R ME;}
+  I n1=1; n=0;
   do {
         n1=recv(sockfd,(S)&buf,20000,0);
         if(n1 == 0) break;
-        if(n1<0){O("errno: %d\n",errno); R 0;}
+        if(n1<0){O("errno: %d\n",errno); free(data); R SE;}
         if( (n+n1) > (size-1) ) { size += 20000; S tmp=realloc(data,size); if(!tmp){free(data);R ME;} data=tmp; }
         for(i=0; i<n1; ++i) data[n+i]=buf[i]; //was n1+1, read 1 byte past buffer
         n += n1;

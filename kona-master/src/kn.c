@@ -16,6 +16,18 @@
 #endif
 M0 CP[FD_SETSIZE+1]; //Connection Pool (large array), last entry for Windows _4d
 
+/* Escape backslash and double-quote so a buffer can be safely placed
+   inside a K string literal assembled in read_tape().
+   out must be at least 2*inlen+1 bytes.  Returns output length. */
+Z I escape_kstr(cS in, I inlen, S out, I outmax) {
+  I j=0;
+  for(I i=0;i<inlen&&j<outmax-2;i++){
+    if(in[i]=='"'||in[i]=='\\'){out[j++]='\\';}
+    out[j++]=in[i];}
+  out[j]='\0'; R j;}
+
+#define MAX_HANDLER_SRC 4096  /* cap .m.h source length to bound VLA sizes */
+
 Z I close_tape(I i,I sockfd);
 Z K modified_execute(K x);
 K KONA_WHO,KONA_PORT,KONA_CLIENT;
@@ -111,11 +123,14 @@ K read_tape(I i, I j, I type) {   // type in {0,1} -> {select loop, 4: resp read
     K h=*denameS(".",".m.h",0);
     if(6==h->t){send(j,bx,nbytes,0); bx[0]='\0'; close_tape(i,j); R (K)0;}  //echo back only if .m.h does not exist
     else {
-      if(7!=h->t && 3!=h->n) {
+      if(7!=h->t || 3!=h->n) {
         I n=snprintf(bx,128,"%s",".m.h is not type 7-3"); if(n>=128)R WE;
         send(j,bx,strlen(bx),0); bx[0]='\0'; close_tape(i,j); R (K)0;}
       else {   //have .m.h of type 7-3
         S f=kC(kK(h)[CODE]); I ax=0,ay=0,az=0,sf=strlen(f);
+        if(sf>MAX_HANDLER_SRC){
+          snprintf(bx,128,"%s",".m.h source too long");
+          send(j,bx,strlen(bx),0); bx[0]='\0'; close_tape(i,j); R (K)0;}
         DO(sf, if(f[i]=='x')ax=1; else if(f[i]=='y')ay=1; else if(f[i]=='z')az=1;) I na=maX(1,ax+ay+az);
         if(na==3) {
           if(bz[0]=='\0'){ send(j,bn,1,0); close_tape(i,j); R (K)0; }
@@ -123,11 +138,14 @@ K read_tape(I i, I j, I type) {   // type in {0,1} -> {select loop, 4: resp read
             for(n=0;n<127;++n){if(bx[n]=='\r' || bx[n]=='\0')break;} bx[n]='\0';
             for(n=0;n<127;++n){if(by[n]=='\r' || by[n]=='\0')break;} by[n]='\0';
             for(n=0;n<127;++n){if(bz[n]=='\r')break;} bz[n]='\0';
-            I sbx=strlen(bx); I sby=strlen(by); I sbz=strlen(bz);
+            C ebx[256],eby[256],ebz[256];
+            I sbx=escape_kstr(bx,strlen(bx),ebx,sizeof(ebx));
+            I sby=escape_kstr(by,strlen(by),eby,sizeof(eby));
+            I sbz=escape_kstr(bz,strlen(bz),ebz,sizeof(ebz));
             C c[13+sf+sbx+sby+sbz]; c[0]='{'; c[1+sf]='}'; c[2+sf]='['; c[11+sf+sbx+sby+sbz]=']';
             c[3+sf]=c[4+sf+sbx]=c[6+sf+sbx]=c[7+sf+sbx+sby]=c[9+sf+sbx+sby]=c[10+sf+sbx+sby+sbz]='"';
             c[5+sf+sbx]=c[8+sf+sbx+sby]=';'; c[12+sf+sbx+sby+sbz]='\0';
-            DO(sf,c[1+i]=f[i]) DO(sbx,c[4+sf+i]=bx[i]) DO(sby,c[7+sf+sbx+i]=by[i]) DO(sbz,c[10+sf+sbx+sby+i]=bz[i])
+            DO(sf,c[1+i]=f[i]) DO(sbx,c[4+sf+i]=ebx[i]) DO(sby,c[7+sf+sbx+i]=eby[i]) DO(sbz,c[10+sf+sbx+sby+i]=ebz[i])
             K r=X(c); I w=128; C bck[w];
             switch(r->t) {
               CS(1, {n=snprintf(bck,w,"%lld",*kI(r)); if(n>=w){bck[w-4]=bck[w-3]=bck[w-2]='.';}})
@@ -141,11 +159,13 @@ K read_tape(I i, I j, I type) {   // type in {0,1} -> {select loop, 4: resp read
           else {
             for(n=0;n<127;++n){if(bx[n]=='\r')break;} bx[n]='\0';
             for(n=0;n<127;++n){if(by[n]=='\r')break;} by[n]='\0';
-            I sbx=strlen(bx); I sby=strlen(by);
+            C ebx[256],eby[256];
+            I sbx=escape_kstr(bx,strlen(bx),ebx,sizeof(ebx));
+            I sby=escape_kstr(by,strlen(by),eby,sizeof(eby));
             C c[10+sf+sbx+sby]; c[0]='{'; c[1+sf]='}'; c[2+sf]='['; c[8+sf+sbx+sby]=']';
             c[3+sf]=c[4+sf+sbx]=c[6+sf+sbx]=c[7+sf+sbx+sby]='"';
             c[5+sf+sbx]=';'; c[9+sf+sbx+sby]='\0';
-            DO(sf,c[1+i]=f[i])  DO(sbx,c[4+sf+i]=bx[i]) DO(sby,c[7+sf+sbx+i]=by[i])
+            DO(sf,c[1+i]=f[i])  DO(sbx,c[4+sf+i]=ebx[i]) DO(sby,c[7+sf+sbx+i]=eby[i])
             K r=X(c); I w=128; C bck[w];
             switch(r->t) {
               CS(1, {n=snprintf(bck,w,"%lld",*kI(r)); if(n>=w){bck[w-4]=bck[w-3]=bck[w-2]='.';}})
@@ -155,10 +175,11 @@ K read_tape(I i, I j, I type) {   // type in {0,1} -> {select loop, 4: resp read
               default:{n=snprintf(bck,w,"%s","NYI: .m.h result of that type and count"); if(n>=w)R WE;} }
             send(j,bck,strlen(bck),0); bx[0]='\0'; by[0]='\0'; close_tape(i,j); R (K)0; } }
         for(n=0;n<127;n++){if(bx[n]=='\r' || bx[n]=='\0')break;}
-        bx[n]='\0'; I sbx=strlen(bx);
+        bx[n]='\0';
+        C ebx[256]; I sbx=escape_kstr(bx,strlen(bx),ebx,sizeof(ebx));
         C c[7+sf+sbx]; c[0]='{'; c[1+sf]='}'; c[2+sf]='['; c[5+sf+sbx]=']';
         c[3+sf]=c[4+sf+sbx]='"'; c[6+sf+sbx]='\0';
-        DO(sf,c[1+i]=f[i])  DO(sbx,c[4+sf+i]=bx[i])
+        DO(sf,c[1+i]=f[i])  DO(sbx,c[4+sf+i]=ebx[i])
         K r=X(c); if(strcmp(errmsg,"(nil)")){oerr();GC;}
         if(-3==r->t||3==r->t){send(j,kC(r),strlen(kC(r)),0);} //send char vectors directly, no 128-byte cap
         else { I w=128; C bck[w];
@@ -185,7 +206,7 @@ K read_tape(I i, I j, I type) {   // type in {0,1} -> {select loop, 4: resp read
     //dm1("read_tape",&CP[i].m1);
     //if(sizeof(M1)+CP[i].m1.n > 987654321) GC; //protect against too big?
     K k = newK(-3, m+CP[i].m1.n);
-    if(!(CP[i].k=k))GC;
+    if(!(CP[i].k=k)){O("read_tape: oom allocating ipc buffer\n"); GC;}
     memcpy(kC(k),&CP[i].m1,m); } //cpy data from our struct to the corresponding spot on the '_bd' object
   if(CP[i].r == m + CP[i].m1.n) {  //the k for the _db is completed. perform modified execution, potentially respond
     //TODO: (here or in _db?) rearrange bytes based on little-endianness indicator CP[i].m1.a

@@ -182,8 +182,10 @@ I kinit()
   R 0; }
 
 Z I randomBits()
-{ I s;I f=open("/dev/urandom",0);
-  I r=read(f,&s,sizeof(s)); if(!r)show(kerr("read"));
+{ I s=0;
+  I f=open("/dev/urandom",0);
+  if(f<0){show(kerr("file")); R 0;}
+  I r=read(f,&s,sizeof(s)); if(r<=(I)sizeof(s)-1)show(kerr("read"));
   r=close(f); if(r)show(kerr("file")); R s; }
 
 void seedPRNG(I s){SEED=s?s:randomBits(); init_genrand64(SEED);}
