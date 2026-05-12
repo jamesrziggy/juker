@@ -33,8 +33,13 @@ trimc: {:[0=#x; x; cm[0]=x[(-1)+#x]; (-1)_ x; x]}
 depths: {n:#x; d: n#0; dep: 0; inq: 0; i: 0; while[i<n; c: x[i]; :[c=dq[0]; inq: ~inq; (~inq)&(c=lsb[0])|(c=lcb[0]); dep: dep+1; (~inq)&(c=rsb[0])|(c=rcb[0]); dep: dep-1; 0]; d[i]: dep; i: i+1]; d}
 dsplit: {d: depths x; cpos: &(x=cm[0])&(d=y); trimc' (0,(1+cpos))_ x}
 
+/ valid chars anywhere in a JSON number literal (+ excluded: 1e+10 is rare; 1+1 must not eval)
+numch: "0123456789.eE-"
+/ true only if x looks like a JSON number — guards eval x from K injection
+isnum: {(0<#x)&(x[0]_lin "-0123456789")&0=#&~x _lin numch}
+
 / parse a JSON value: detect type by first char, recurse as needed
-pval: {:[0=#x; _n; x[0]=lcb[0]; pobj x; x[0]=lsb[0]; parr x; x[0]=dq[0]; unbrace x; x~"null"; _n; x~"true"; 1; x~"false"; 0; eval x]}
+pval: {:[0=#x; _n; x[0]=lcb[0]; pobj x; x[0]=lsb[0]; parr x; x[0]=dq[0]; unbrace x; x~"null"; _n; x~"true"; 1; x~"false"; 0; :[isnum x; eval x; _n]]}
 
 / parse array: strip brackets, split on commas at depth 0, parse each
 parr: {inner: unbrace x; :[0=#inner; !0; pval' dsplit[inner;0]]}

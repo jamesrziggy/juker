@@ -18,6 +18,6 @@ body: "<!DOCTYPE html><html><head><meta charset=utf-8><title>Kona Proof</title><
 
 page: {resp["text/html";body]}
 
-.m.h: {[x] :[4<#x; :[("a"=x[5])&("p"=x[6])&("i"=x[7]); api[]; :[("i"=x[5])&("n"=x[6])&("c"=x[7]); inc[]; :[("r"=x[5])&("e"=x[6])&("s"=x[7])&("e"=x[8])&("t"=x[9]); rst[]; page[]]]]; page[]]}
+.m.h: {[x] :[4<#x; :[("G"=x[0])&("E"=x[1])&("T"=x[2])&(" "=x[3]); :[("a"=x[5])&("p"=x[6])&("i"=x[7]); api[]; :[("i"=x[5])&("n"=x[6])&("c"=x[7]); inc[]; :[("r"=x[5])&("e"=x[6])&("s"=x[7])&("e"=x[8])&("t"=x[9]); rst[]; page[]]]]; page[]]; page[]]}
 
 `0: "kona proof web app: listening"
