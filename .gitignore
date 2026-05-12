@@ -3,3 +3,4 @@ kona-master/k
 kona-master/k_test
 kona-master/src/*.o
 kona-master/src/*.t.o
+kona-master/src/kbuild.h
