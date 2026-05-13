@@ -176,11 +176,11 @@ K read_tape(I i, I j, I type) {   // type in {0,1} -> {select loop, 4: resp read
             send(j,bck,strlen(bck),0); bx[0]='\0'; by[0]='\0'; close_tape(i,j); R (K)0; } }
         for(n=0;n<127;n++){if(bx[n]=='\r' || bx[n]=='\0')break;}
         bx[n]='\0';
-        C ebx[256]; I sbx=escape_kstr(bx,strlen(bx),ebx,sizeof(ebx));
-        C c[7+sf+sbx]; c[0]='{'; c[1+sf]='}'; c[2+sf]='['; c[5+sf+sbx]=']';
-        c[3+sf]=c[4+sf+sbx]='"'; c[6+sf+sbx]='\0';
-        DO(sf,c[1+i]=f[i])  DO(sbx,c[4+sf+i]=ebx[i])
-        K r=X(c); if(strcmp(errmsg,"(nil)")){oerr();GC;}
+        I sbx=strlen(bx);
+        K arg=newK(-3,sbx); if(!arg){GC;}
+        memcpy(kC(arg),bx,sbx);
+        K r=at(h,arg); cd(arg);
+        if(strcmp(errmsg,"(nil)")){oerr();GC;}
         if(-3==r->t||3==r->t){send(j,kC(r),strlen(kC(r)),0);} //send char vectors directly, no 128-byte cap
         else { I w=128; C bck[w];
         switch(r->t){
