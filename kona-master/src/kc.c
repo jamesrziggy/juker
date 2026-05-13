@@ -31,6 +31,13 @@ K KONA_GSET=0,KONA_IDX=0;
 volatile sig_atomic_t interrupted=0;
 Z I randomBits();
   I oerr(){R O("%s %s\n",errmsg,"error");}
+Z I clierr(S s)
+{
+  if(!strcmp(errmsg,"(nil)")) R 0;
+  oerr();
+  if(s && *s) O("  %s\n",s);
+  R 1;
+}
 I feci=0;           //Flag error cast as integer
   I scrLim=0;       //script load limit
   I fCheck=0;
@@ -88,8 +95,8 @@ I args(int n,S*v)
     CS('i',  if(HTTP_PORT)O("-h accepted, cannot also have -i\n");
              else{ IPC_PORT=optarg;*kI(KONA_PORT)=atol(IPC_PORT); } )
     CS('b',  b=0;)
-    CS('e',  cd(X(optarg)); exit(0) )
-    CS('x',  k=X(optarg); printAtDepth(0,k,0,0,0,0); O("\n"); cd(k); exit(0) )
+    CS('e',  k=X(optarg); if(clierr(optarg))exit(1); cd(k); exit(0) )
+    CS('x',  k=X(optarg); if(clierr(optarg))exit(1); printAtDepth(0,k,0,0,0,0); O("\n"); cd(k); exit(0) )
     CSR(':', )
     CS('?',  O("%c\nabort",optopt); exit(0)) }
   if(b)boilerplate();

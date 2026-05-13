@@ -245,3 +245,71 @@ K floor_ceil(K a, F(*g)(F))
 }
 
 K floor_verb(K a){R floor_ceil(a,floor);}//K3.2  "_ -5 + 1.0 * 1 + -OI" yields -0I not Domain Error
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+/* _pmul: parallel matrix multiply for float matrices.
+   a is M x P (list of P-length float vectors), b is P x N likewise.
+   Falls back to TE/LE on shape mismatch. Uses OpenMP for row-parallel work. */
+K _pmul(K a, K b)
+{
+  if(a->t != 0 || b->t != 0) R TE;
+  I M = a->n;
+  if(M == 0){ K z=newK(0,0); R z; }
+  K row0a = kK(a)[0];
+  if(ABS(row0a->t) != 2) R TE;
+  I P_ = row0a->n;
+  if(b->n != P_) R LE;
+  if(P_ == 0) R newK(-1,M);
+  K row0b = kK(b)[0];
+  if(ABS(row0b->t) != 2) R TE;
+  I N = row0b->n;
+
+  F *Aflat = (F*)malloc(M * P_ * sizeof(F));
+  if(!Aflat) R 0;
+  for(I i=0;i<M;i++){
+    K row = kK(a)[i];
+    if(ABS(row->t) != 2 || row->n != P_){ free(Aflat); R LE; }
+    memcpy(Aflat + i*P_, kF(row), P_*sizeof(F));
+  }
+
+  F *Bflat = (F*)malloc(P_ * N * sizeof(F));
+  if(!Bflat){ free(Aflat); R 0; }
+  for(I i=0;i<P_;i++){
+    K row = kK(b)[i];
+    if(ABS(row->t) != 2 || row->n != N){ free(Aflat); free(Bflat); R LE; }
+    memcpy(Bflat + i*N, kF(row), N*sizeof(F));
+  }
+
+  K z = newK(0, M);
+  if(!z){ free(Aflat); free(Bflat); R 0; }
+  for(I i=0;i<M;i++){
+    K row = newK(-2, N);
+    if(!row){
+      for(I j=0;j<i;j++) cd(kK(z)[j]);
+      cd(z); free(Aflat); free(Bflat); R 0;
+    }
+    kK(z)[i] = row;
+  }
+
+  /* zero output rows so we can accumulate */
+  for(I i=0;i<M;i++) memset(kF(kK(z)[i]), 0, N*sizeof(F));
+
+  /* ikj loop order: B accessed contiguously per inner j-loop -> cache friendly,
+     and rows of C are independent across i so OpenMP splits cleanly. */
+  #pragma omp parallel for schedule(static)
+  for(I i=0;i<M;i++){
+    F *Ai = Aflat + i*P_;
+    F *Ci = kF(kK(z)[i]);
+    for(I k=0;k<P_;k++){
+      F a_ik = Ai[k];
+      F *Bk = Bflat + k*N;
+      for(I j=0;j<N;j++) Ci[j] += a_ik * Bk[j];
+    }
+  }
+
+  free(Aflat); free(Bflat);
+  R z;
+}

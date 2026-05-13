@@ -486,7 +486,7 @@ K _1m(K x) {    //Keeps binary files mapped
   I sm = strlen(m);
   S e= sm > 1 && '.'==m[sm-2] && *KFX==m[sm-1] ? strdupn(m,sm) : glueSS(m,KFX);
      //lfop (lower-case l on Windows -- differs from 'L' in manual)
-  U(e)
+  if(!e)R ME;
 
   struct stat c; //lfop windows: GetFileSizeEx
 
@@ -845,7 +845,7 @@ K _2m(K a) { //again, minor copy/paste here
   I sm = strlen(m);
   S e= sm > 1 && '.'==m[sm-2] && *KFX==m[sm-1] ? strdupn(m,sm) : glueSS(m,KFX);
     //lfop (lower-case l on Windows -- differs from 'L' in manual)
-  U(e)
+  if(!e)R ME;
 
   I s,f=open(e,0); //Try the extended version of the filename first
   if(f>=0) P(stat_sz(e,&s),SE)
@@ -1117,13 +1117,13 @@ K _5d_(K x,K y,I dosync) {
   //can't write symbols/chars efficiently if #bytes rounded up. for this reason switched to using MAX(.,4*sizeof(I)) instead of nearI(.)
 
   //Largely Copy/pasted from 2:monadic
-  if(4!=xt && 3!=ABS(xt)) R 0;//TODO: type error
+  P(4!=xt && 3!=ABS(xt), TE)
 
   S m=CSK(x); //looks for .K or .L extensions first
   I sm = strlen(m);
   S e= sm > 1 && '.'==m[sm-2] && *KFX==m[sm-1] ? strdupn(m,sm) : glueSS(m,KFX);
     //TODO: lfop (lower-case l on Windows -- differs from 'L' in manual)
-  if(!e)R 0; //TODO: oom
+  if(!e)R ME;
 
   struct stat c; //lfop windows: GetFileSizeEx
 
@@ -1137,7 +1137,7 @@ K _5d_(K x,K y,I dosync) {
   free(e);
 
   I s = c.st_size;
-  if(s < 4*sizeof(I)) R 0; //TODO: err, file is malformed
+  if(s < 4*sizeof(I)){ close(f); R NE; }
 
   //TODO: regular file read + rewind?
   I ft,fn;
@@ -1146,16 +1146,16 @@ K _5d_(K x,K y,I dosync) {
   ssize_t pread (int __fd, void *__buf, size_t __nbytes, off_t __offset);
   #endif
   I g;
-  g=pread(f,&ft,sizeof(ft),2*sizeof(I)); if(!g)show(kerr("pread"));
-  g=pread(f,&fn,sizeof(ft),2*sizeof(I)+sizeof(ft)); if(!g)show(kerr("pread"));
+  g=pread(f,&ft,sizeof(ft),2*sizeof(I)); if(g!=sizeof(ft)){ close(f); R FE; }
+  g=pread(f,&fn,sizeof(ft),2*sizeof(I)+sizeof(ft)); if(g!=sizeof(ft)){ close(f); R FE; }
 
-  if( (yt>0&&yt!=5) || ft != yt) R 0; //TODO: type error
+  if( (yt>0&&yt!=5) || ft != yt){ close(f); R TE; }
 
   I b = disk(y) - 4*sizeof(I) - (-3==yt); //-3 type overwrites preexisting '\0' terminator
   I n = s + b;
 
   //Mostly copy-pasted from 6:dyadic and 1:dyadic
-  if(ftruncate(f,n))R 0; //TODO: error
+  if(ftruncate(f,n)){ close(f); R SE; }
 
   //lfop: see 0: write for possible way to do ftruncate etc. on Windows
   S v;
@@ -1215,7 +1215,7 @@ K _6d(K a,K b) {  //A lot of this is copy/paste from 0: dyadic write
   if(0==a->t && 1==a->n) {append=1; c=kK(a)[0];}
   else if (-4==c->t && 1==c->n) append = 1;
 
-  if(4!=c->t && 3!=ABS(c->t) && (!append && -4==c->t))R 0; //TODO: err? (1)6:"a" -> nothing,  (1.0 or `a`b) 6: "a" -> stop
+  P(!(4==c->t || 3==ABS(c->t) || (append && -4==c->t)), TE)
 
   I t=b->t, n=b->n;
   P(3!=ABS(t),TE)

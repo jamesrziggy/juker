@@ -19,4 +19,5 @@ K newK(I t,I n);
 K at(K x,K y);
 K power(K a,K b);
 K overDyad(K a,V*p,K b);
+K _pmul(K a,K b);
 extern C errmsg[256];
