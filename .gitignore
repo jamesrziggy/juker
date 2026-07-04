@@ -1,0 +1,4 @@
+# Kona build artifacts
+kona-master/k
+kona-master/k_test
+kona-master/src/*.o
