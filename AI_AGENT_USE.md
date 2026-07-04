@@ -30,6 +30,10 @@ extension experiments.
 - `kona-master/docs/scripts/PROOF_WEB_NOTES.md`: notes from the HTTP proof.
 - `kona-master/docs/scripts/KONA_DEEP_DIVE.md`: source/wiki research notes.
 - `kona-master/sudoku.k`: nontrivial K script example.
+- `kona-master/docs/scripts/gateway_math.k`: binaural-beat, drum-entrainment,
+  and Solomonic planetary-hour calculations in K.
+- `research/PSYONICS_RND.md`: sourced R&D notes on the Gateway Process, the
+  Key of Solomon, and recorded oral traditions.
 
 ## Local Build And Run
 
