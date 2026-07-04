@@ -16,7 +16,6 @@ LBL:("signs    ";"decans   ";"quinances")
 CAT:("(12 signs)";"(36 decan-spirits, Testament of Solomon)";"(72 Goetia spirits / 72 Shem angels)")
 p:{[i] say "  360 % ",($ARC[i])," = ",($360%ARC[i]),"  ",LBL[i]," ",CAT[i]}
 r0:p'!3
-say "  sum 1..36 = ",($+/1+!36),"  (= Sun kamea total = Sorath)"
 
 / ---- 2. aspects: divisor angles of the circle ----
 say ""

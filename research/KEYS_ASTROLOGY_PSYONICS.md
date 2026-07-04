@@ -115,16 +115,6 @@ The Clavicula Salomonis gates every operation by planetary day and hour:
 | **Modular cycle generating the calendar of practice** | Chaldean order mod 7 → hours → weekdays; each planet recurs every 7th hour | practice schedules keyed to recurring windows (LST window recurs every sidereal day, 23h56m — drifting ~4 min/day against the civil clock exactly as planetary hours drift with the seasons) |
 | **Partition hierarchy of the field of operation** | 360 → 12 → 36 → 72; sign/decan/quinance nesting | CRV protocol's staged decomposition of the target (Stage 1 ideogram → Stage 6 3-D model): coarse-to-fine partition of the signal |
 
-### Numeric coincidences recorded across the systems
-
-- 72 Shem angels = 72 Goetia spirits = 72 quinances = precessional shift of
-  1° per 71.6 years (rounded 72) used in astrological age arithmetic.
-- 36 decans = 36 TSol sky-spirits; sum 1..36 = 666 = Sun kamea total =
-  gematria of Sorath, the Sun spirit.
-- 32 = 10 sefirot + 22 letters (Sefer Yetzirah's "paths"); 22 = letters =
-  Major Arcana count mapped onto the paths in the Golden Dawn system.
-- 7 bodies × 24 hours: 24 mod 7 = 3 generates the weekday order (§1.3).
-
 ---
 
 ## Sources
