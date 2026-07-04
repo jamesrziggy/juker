@@ -32,8 +32,10 @@ extension experiments.
 - `kona-master/sudoku.k`: nontrivial K script example.
 - `kona-master/docs/scripts/gateway_math.k`: binaural-beat, drum-entrainment,
   and Solomonic planetary-hour calculations in K.
-- `research/PSYONICS_RND.md`: sourced R&D notes on the Gateway Process, the
-  Key of Solomon, and recorded oral traditions.
+- `kona-master/docs/scripts/keys_math.k`: kamea constants, gematria
+  checksums, zodiac partitions, and aspect angles computed in K.
+- `research/KEYS_ASTROLOGY_PSYONICS.md`: the mathematics recorded in the
+  Solomonic keys and astrology, aligned with psyonic practice protocols.
 
 ## Local Build And Run
 
