@@ -1,0 +1,36 @@
+# PSI / ALTERED-STATE NUMERIC CORPUS — for RV pattern-search
+# format: label | n | value | z_or_rate | source_era
+
+## GANZFELD (chance = 0.25)
+prl_autoganzfeld    | 329   | 106  | 0.3222 | z=3.02 | 1983-89
+storm_db            | 1498  | 483  | 0.3224 | z=6.47 | 1997-2008
+pooled_ganzfeld     | 1827  | 589  | 0.3224 | z=7.15 | merged
+watt_precog_select  | 60    | 22   | 0.3667 | sig    | 2019
+convergence_point   | -     | -    | 0.322  | -      | two eras, 15yr apart
+
+## REG / FIELD (chance = 0.5 baseline)
+pear_reg            | 2.5e6 | -    | -      | z=3.99 | 1979-91
+gcp_formal          | 500   | -    | -      | Z=7.31 | 1998-2015
+
+## COMBINED
+stouffer_4db        | -     | -    | -      | Z=10.39 | 4 indep
+stouffer_+MW99null  | -     | -    | -      | Z=9.61  | +1 null
+stouffer_+MW+TPP    | -     | -    | -      | Z=8.77  | +2 null
+failsafe_N          | -     | -    | 156    | -       | nulls to kill
+
+## ALTERED-STATE INCIDENCE (deprivation)
+hebb_sensory        | 14    | 14   | 1.00   | halluc  | 1954
+hebb_scenic         | 14    | 3    | 0.214  | scenic  | 1954
+tank_respirator     | 17    | 5    | 0.294  | complete| 1950s
+sleep_visual        | -     | -    | 0.90   | modality| 2018
+sleep_somato        | -     | -    | 0.52   | modality| 2018
+sleep_auditory      | -     | -    | 0.33   | modality| 2018
+
+## SLEEP STAGE THRESHOLDS (hours awake)
+distortion_onset    | 24    | -    | -      | stage1  |
+halluc_onset        | 48    | -    | -      | stage2  |
+delusion_onset      | 72    | -    | -      | stage3  |
+
+## GEOMAGNETIC (Persinger, psi-conducive window)
+psi_quiet_nT        | -     | -    | 10     | hits    | nT
+psi_kill_nT         | -     | -    | 25     | null    | nT
